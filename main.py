@@ -1,21 +1,29 @@
 import smtplib, ssl, getpass
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email_id import main_gen
+from tracker import *
 
 port = 465  # For SSL
 password = getpass.getpass("Type your password and press enter: ")
-sender_address = "youremail"
-recipient_address = "youremail"
+sender_address = "sender email"
+recipient_address = "reciver email"
+subject = "Your email subject"
 
 message = MIMEMultipart()
-message["Subject"] = "First Test"
+message["Subject"] = subject
 message["From"] = sender_address
 message["To"] = recipient_address
 
-image_link = "image_link"
+
+image_link, dict_key = main_gen()
+
+email_database[dict_key] = [recipient_address, subject]
+
+
 mail_text = """\
 
-    If you are reading this...success (pt3)!!
+    If you are reading this...success!!
 
     <html>
         <head></head>
@@ -36,8 +44,7 @@ message.attach(msg_parsed)
 context = ssl.create_default_context()
 
 with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-    server.login("youremail", password)
+    server.login("sender email", password)
     server.sendmail(sender_address, recipient_address, message.as_string())
 
 
-#This is a new comment
