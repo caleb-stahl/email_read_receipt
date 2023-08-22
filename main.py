@@ -1,50 +1,35 @@
-import smtplib, ssl, getpass
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email_id import main_gen
-from tracker import *
+"""
+This server side script will intercept all the requests, check them 
+against a dictionary of emails and indentifying URLs, and help send
+me an SMS alerting me that the email has been opened. 
+"""
 
-port = 465  # For SSL
-password = getpass.getpass("Type your password and press enter: ")
-sender_address = "sender email"
-recipient_address = "reciver email"
-subject = "Your email subject"
-
-message = MIMEMultipart()
-message["Subject"] = subject
-message["From"] = sender_address
-message["To"] = recipient_address
+from flask import Flask, request
+from email import email_database, send_mail
 
 
-image_link, dict_key = main_gen()
-
-email_database[dict_key] = [recipient_address, subject]
+app = Flask(__name__)
 
 
-mail_text = """\
+@app.route("/pixel.png", methods = ["GET"])
 
-    If you are reading this...success!!
+def tracking():
+    r_id = request.args.get("reciever_id")
 
-    <html>
-        <head></head>
-        <body>
-            <p>
-                <img src = "{0}">
-            </p>
-        </body>
-    </html>
+    if r_id in email_database:
+        email = email_database[r_id][0]
+        subject = email_database[r_id][1]
 
+        log_text = f'Reciever {email} opened the email with subject {subject}'
+
+        with open('/path/to/email_open_log.txt', 'a') as log_file:
+            log_file.write(log_text + '\n')
+        
+        return "", 200
+    else:
+        return "Recipient not found", 404
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8080)
+    send_mail()
     
-    """
-mail_text = mail_text.format(image_link)
-msg_parsed = MIMEText(mail_text, "html")
-message.attach(msg_parsed)
-
-# Create a secure SSL context
-context = ssl.create_default_context()
-
-with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-    server.login("sender email", password)
-    server.sendmail(sender_address, recipient_address, message.as_string())
-
-
