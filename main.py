@@ -5,7 +5,19 @@ me an SMS alerting me that the email has been opened.
 """
 
 from flask import Flask, request
-from mail import email_database, send_mail
+
+#Reading from the logfile
+email_database = {}
+
+def dictionary_create():
+    with open("prelog.txt", "r") as file:
+        for line in file:
+            key, value = line.strip().split(": ")
+            email_database[key] = value
+
+    #Refresh the contents of the logfile
+    with open("prelog.txt", "w") as file:
+        file.write("")
 
 
 app = Flask(__name__)
@@ -14,6 +26,8 @@ app = Flask(__name__)
 #tracking() is run
 @app.route("/pixel.png", methods = ["GET"])
 def tracking():
+    dictionary_create()
+
     r_id = request.args.get("reciever_id")
 
     if r_id in email_database:
@@ -25,7 +39,7 @@ def tracking():
         log_text = f'Reciever {email} opened the email with subject {subject}'
 
         #Writes the message that will be sent via SMS to a log file
-        with open('/path/to/email_open_log.txt', 'a') as log_file:
+        with open('log.txt', 'a') as log_file:
             log_file.write(log_text + '\n')
         
         #Removes the email from the data base
@@ -37,5 +51,4 @@ def tracking():
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080)
-    send_mail()
     

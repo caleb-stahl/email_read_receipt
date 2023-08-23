@@ -20,8 +20,13 @@ def send_mail():
 
         #Get the unique recipent identifier for the email
         image_link, dict_key = main_gen()
-        #Store it in the database
+        #Store it in the database 
         email_database[dict_key] = [recipient_address, subject]
+
+        #Writing the dictionary to a logfile 
+        with open("prelog.txt", "w") as file:
+            for key, value in email_database.items():
+                file.write(f"{key}: {value}\n")
 
 
         #Allows me to format a new email
