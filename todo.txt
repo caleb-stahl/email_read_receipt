@@ -1,7 +1,0 @@
-1) Write a Python Script to send emails (Done)
-1) Create an EC2 instance on AWS (Done)
-3) Create a webserver (Done)
-4) Configure with nginx (Done)
-5) Host on webserver (Done)
-6) Write Scripts to recognize and process the http protocol
-7) Configure text automation
