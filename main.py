@@ -5,19 +5,20 @@ me an SMS alerting me that the email has been opened.
 """
 
 from flask import Flask, request
+from collections import defaultdict
 
 #Reading from the logfile
-email_database = {}
+email_database = defaultdict(list)
 
 def dictionary_create():
     with open("prelog.txt", "r") as file:
         for line in file:
             key, value = line.strip().split(": ")
-            email_database[key] = value
-
-    #Refresh the contents of the logfile
-    with open("prelog.txt", "w") as file:
-        file.write("")
+            address = value.split(',')[0].strip().strip("'[] ")
+            sub = value.split(',')[1].strip().strip("'[] ")
+            email_database[key].append(address)
+            email_database[key].append(sub)
+    
 
 
 app = Flask(__name__)
@@ -26,6 +27,7 @@ app = Flask(__name__)
 #tracking() is run
 @app.route("/pixel.png", methods = ["GET"])
 def tracking():
+    print("HERE")
     dictionary_create()
 
     r_id = request.args.get("reciever_id")
