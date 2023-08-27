@@ -1,9 +1,10 @@
 """
 This server side script will intercept all the requests, check them 
 against a dictionary of emails and indentifying URLs, and help send
-me an SMS alerting me that the email has been opened. 
+me an Email with Amazon SES alerting me that the email I sent has been opened. 
 """
-from twilio.rest import Client
+import boto3
+from botocore.exceptions import NoCredentialsError
 import keys
 from collections import defaultdict
 import time
@@ -22,13 +23,31 @@ lines_seen = set()
 with open("alog.txt", "w") as file:
     file.write("")
 
-def sendSMS(message):
-    client = Client(keys.account_sid, keys.auth_token)
-    text = client.messages.create(
-        body = message,
-        from_ = keys.twil_num,
-        to = keys.target_num
-    )
+def sendEMAIL(message):
+    # Set up SES client
+    ses_client = boto3.client('ses', region_name='us-west-1', aws_access_key_id=keys.access_key_id, aws_secret_access_key=keys.secred_access)
+
+    # Email details
+    sender_email = keys.sender_mail
+    recipient_email = keys.receiver_email
+    subject = 'Someone Opened Your EMAIL'
+    body = message
+
+    # Send email
+    try:
+        response = ses_client.send_email(
+            Source=sender_email,
+            Destination={
+                'ToAddresses': [recipient_email],
+            },
+            Message={
+                'Subject': {'Data': subject},
+                'Body': {'Text': {'Data': body}},
+            }
+        )
+        print("Email sent! Message ID:", response['MessageId'])
+    except NoCredentialsError:
+        print("Credentials not available. Make sure you've set up AWS credentials.")
 
 def dictionary_create():
     with open("prelog.txt", "r") as file:
@@ -38,6 +57,8 @@ def dictionary_create():
             sub = value.split(',')[1].strip().strip("'[] ")
             email_database[key].append(address)
             email_database[key].append(sub)
+
+
 
 def extract_receiver_id(line):
     pattern = r'reciever_id=([a-f0-9-]+)'
@@ -63,9 +84,10 @@ def monitor_text_file(filename):
 
 
 def tracking():
-    print("HERE")
+    print("GO")
     dictionary_create()
     monitor_text_file("alog.txt")
+
 
     for r_id in opened:
         if r_id in email_database:
@@ -76,8 +98,8 @@ def tracking():
             #Message to be sent via SMS
             log_text = f'Reciever "{email}" opened the email with subject "{subject}"'
 
-            #Sends the text to my phone number
-            sendSMS(log_text)
+            #Sends EMAIL
+            sendEMAIL(log_text)
             
             #Removes the email from the data base
             del email_database[r_id]
@@ -89,5 +111,5 @@ def tracking():
 if __name__ == '__main__':
     while True:
         tracking()
-        time.sleep(10)
+        time.sleep(5)
     
