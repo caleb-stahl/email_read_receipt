@@ -3,7 +3,8 @@ This server side script will intercept all the requests, check them
 against a dictionary of emails and indentifying URLs, and help send
 me an SMS alerting me that the email has been opened. 
 """
-
+from twilio.rest import Client
+import keys
 from collections import defaultdict
 import time
 import re
@@ -21,6 +22,13 @@ lines_seen = set()
 with open("alog.txt", "w") as file:
     file.write("")
 
+def sendSMS(message):
+    client = Client(keys.account_sid, keys.auth_token)
+    text = client.messages.create(
+        body = message,
+        from_ = keys.twil_num,
+        to = keys.target_num
+    )
 
 def dictionary_create():
     with open("prelog.txt", "r") as file:
@@ -68,9 +76,8 @@ def tracking():
             #Message to be sent via SMS
             log_text = f'Reciever "{email}" opened the email with subject "{subject}"'
 
-            #Writes the message that will be sent via SMS to a log file
-            with open('log.txt', 'a') as log_file:
-                log_file.write(log_text + '\n')
+            #Sends the text to my phone number
+            sendSMS(log_text)
             
             #Removes the email from the data base
             del email_database[r_id]
