@@ -1,3 +1,10 @@
+"""
+This script is responsible for sending the emails that we are going to be tracking. 
+Each email we send using this script will have a tracking pixel embedded in it
+and will be logged. 
+"""
+
+
 import smtplib, ssl, getpass
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -5,14 +12,18 @@ from email_id import main_gen
 
 email_database = {}
 
+"""
+Function that is responsible for sending the email itself
+"""
 def send_mail():
     while True:
         port = 465  # For SSL
-        password = getpass.getpass("Type your password and press enter: ")
-        sender_address = "your_email@gmail.com"
+        password = getpass.getpass("Type your password and press enter: ") #This is not your account password but rather an app specific password you create within google
+        sender_address = "calebstahlsmhs@gmail.com"
         recipient_address = input("Type in the receivers email address: ")
         subject = input("Enter the email Subject Line: ")
 
+        #Gathering parts of the message
         message = MIMEMultipart()
         message["Subject"] = subject
         message["From"] = sender_address
@@ -67,8 +78,9 @@ def send_mail():
         # Create a secure SSL context
         context = ssl.create_default_context()
 
+        #Sending the email
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            server.login("your_email@gmail.com", password)
+            server.login("calebstahlsmhs@gmail.com", password)
             server.sendmail(sender_address, recipient_address, message.as_string())
         
 if __name__ == "__main__":
